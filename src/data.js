@@ -7,6 +7,7 @@ window.Buffer = Buffer;
 export const wpdmCryptoConnect = defineStore('common', () => {
     const data = ref(
         {
+            signature: '',
             amount: 0,
             receiver: '',
             wallets: [
@@ -102,10 +103,8 @@ export const wpdmCryptoConnect = defineStore('common', () => {
         data.value.connectButton.address = '';
     }
     async function requestPayment(label, product) {
-        let signature = '';
         const orig_label = label.value;
         label.value = "Processing...";
-
         try {
             const walletid = localStorage.getItem('wallet_id');
             const publicKey = localStorage.getItem('wallet');
@@ -141,16 +140,13 @@ export const wpdmCryptoConnect = defineStore('common', () => {
 
             // Request the wallet to sign and send the transaction
             const signedTransaction = await provider.signTransaction(transaction);
-            signature = await connection.sendRawTransaction(signedTransaction.serialize());
+            data.value.signature = await connection.sendRawTransaction(signedTransaction.serialize());
             label.value = 'Confirming...';
 
-            if(!await connection.confirmTransaction(signature, 'processed'))
-                throw new Error("connectiontimeout");
+            await connection.confirmTransaction(data.value.signature, 'processed')
 
             label.value = 'Verifying...';
-            jQuery.post(wpdm_url.ajax, {product: product.value, signature :signature, amount: data.value.amount, receiver: data.value.receiver, action: 'wpdmcrypto_validate_payment'}, function () {
-                label.value = 'Completed';
-            });
+            checkStatus(product.value, label);
 
             //WPDM.bootAlert("Payment successful!","Transaction Signature: " + signature);
         } catch (error) {
@@ -164,11 +160,9 @@ export const wpdmCryptoConnect = defineStore('common', () => {
                 return;
             }
 
-            if(signature) {
-                label.value = 'Confirming...';
-                jQuery.post(wpdm_url.ajax, {product: product.value, signature :signature, amount: data.value.amount, receiver: data.value.receiver, action: 'wpdmcrypto_validate_payment'}, function () {
-                    label.value = 'Completed';
-                });
+            if(data.value.signature) {
+                label.value = 'Verifying...';
+                checkStatus(product.value, label);
                 return;
             }
 
@@ -176,6 +170,18 @@ export const wpdmCryptoConnect = defineStore('common', () => {
                 WPDM.bootAlert("Payment Request Error:", error.message, 400, true);
         }
     }
+
+    function checkStatus(product, label) {
+        jQuery.post(wpdm_url.ajax, {product: product, signature :data.value.signature, amount: data.value.amount, receiver: data.value.receiver, action: 'wpdmcrypto_validate_payment'}, function (res) {
+            if(parseInt(res.success) === 1) {
+                label.value = 'Completed';
+                WPDM.bootAlert("Payment successful!",res.message, 400, true);
+            }
+            else
+                setTimeout(() => checkStatus(product, label), 1000)
+        });
+    }
+
     function formatString(str, startLength = 4, endLength = 4) {
         if (str.length <= startLength + endLength) return str;
 

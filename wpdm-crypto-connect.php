@@ -20,6 +20,7 @@ class CryptoConnect {
 		add_shortcode( 'wpdm_request_payment', [ $this, 'requestPayment' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueueScripts' ] );
 		add_action( 'wp_ajax_wpdmcrypto_validate_payment', [ $this, 'validatePayment' ] );
+		add_action( 'wp_ajax_nopriv_wpdmcrypto_validate_payment', [ $this, 'validatePayment' ] );
 	}
 
 	function enqueueScripts() {
@@ -67,7 +68,7 @@ class CryptoConnect {
 	function validatePayment() {
 		// Check if the request is valid
 		if (!isset($_POST['signature'])) {
-			wp_send_json(['success' => false, 'message' => 'Missing signature.'], 400);
+			wp_send_json(['success' => 0, 'message' => 'Missing signature.'], 400);
 		}
 
 		$signature = sanitize_text_field($_POST['signature']);
@@ -96,7 +97,7 @@ class CryptoConnect {
 		$result = json_decode($response, true);
 
 		if (!isset($result['result']) || $result['result'] === null) {
-			wp_send_json(['success' => false, 'message' => 'Transaction not found or invalid signature.']);
+			wp_send_json(['success' => 0, 'message' => 'Transaction not found or invalid signature.']);
 		}
 
 		$transaction = $result['result'];
@@ -104,7 +105,7 @@ class CryptoConnect {
 		$transactionStatus = $transaction['meta']['status'];
 		// Check if transaction was successful
 		if (isset($transactionStatus['err']) && $transactionStatus['err'] !== null) {
-			wp_send_json(['success' => false, 'message' => 'Transaction Failed.']);
+			wp_send_json(['success' => 0, 'message' => 'Transaction Failed.']);
 		}
 
 		$foundReceiver = false;
@@ -125,11 +126,11 @@ class CryptoConnect {
 		}
 
 		if ($foundReceiver && $amountValid) {
-			wp_send_json(['success' => true, 'message' => 'Transaction is valid, receiver address matches, and amount is correct.']);
+			wp_send_json(['success' => 1, 'message' => 'Transaction is valid, receiver address matches, and amount is correct.']);
 		} elseif ($foundReceiver) {
-			wp_send_json(['success' => false, 'message' => 'Transaction is valid, but the paid amount is insufficient.']);
+			wp_send_json(['success' => 0, 'message' => 'Transaction is valid, but the paid amount is insufficient.']);
 		} else {
-			wp_send_json(['success' => false, 'message' => 'Transaction is valid, but receiver address does not match.'. $receiverAddress ." ".$expectedReceiver]);
+			wp_send_json(['success' => 0, 'message' => 'Transaction is valid, but receiver address does not match.'. $receiverAddress ." ".$expectedReceiver]);
 		}
 	}
 
