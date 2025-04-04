@@ -148,10 +148,9 @@ export const wpdmCryptoConnect = defineStore('common', () => {
             label.value = 'Verifying...';
             checkStatus(product.value, label);
 
-            //WPDM.bootAlert("Payment successful!","Transaction Signature: " + signature);
         } catch (error) {
             label.value = orig_label;
-            console.log(error);
+            //console.log(error);
             if(error.message === 'skipconnect') {
                 return;
             }
@@ -167,7 +166,7 @@ export const wpdmCryptoConnect = defineStore('common', () => {
             }
 
             if(error.message)
-                WPDM.bootAlert("Payment Request Error:", error.message, 400, true);
+                WPDM.notify("Payment Error: " + error.message, 'danger', 'top-center', 5000);
         }
     }
 
@@ -175,6 +174,7 @@ export const wpdmCryptoConnect = defineStore('common', () => {
         jQuery.post(wpdm_url.ajax, {product: product, signature :data.value.signature, amount: data.value.amount, receiver: data.value.receiver, action: 'wpdmcrypto_validate_payment'}, function (res) {
             if(parseInt(res.success) === 1) {
                 label.value = 'Completed';
+                data.value.signature = '';
                 WPDM.bootAlert("Payment successful!",res.message, 400, true);
             }
             else
