@@ -10,6 +10,7 @@ export const wpdmCryptoConnect = defineStore('common', () => {
             signature: '',
             amount: 0,
             receiver: '',
+            network: 'devnet',
             wallets: [
                 { name: 'Phantom', provider: false, id: 'phantom', connected: false, label: 'Connect', style: 'btn-info' },
                 { name: 'Solflare', provider: false, id: 'solflare', connected: false, label: 'Connect', style: 'btn-info' },
@@ -102,7 +103,7 @@ export const wpdmCryptoConnect = defineStore('common', () => {
         data.value.connectButton.style = 'btn-info';
         data.value.connectButton.address = '';
     }
-    async function requestPayment(label, product) {
+    async function requestPayment(label, product, network) {
         const orig_label = label.value;
         label.value = "Processing...";
         try {
@@ -122,7 +123,7 @@ export const wpdmCryptoConnect = defineStore('common', () => {
                 return;
             }
 
-            const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('devnet'));
+            const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl(network.value));
             const payer = new solanaWeb3.PublicKey(publicKey); // The connected wallet (payer)
 
             // Create a transaction to request payment

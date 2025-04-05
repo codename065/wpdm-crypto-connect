@@ -9,12 +9,13 @@ import { ref, onMounted } from 'vue';
 import { wpdmCryptoConnect } from '@/data';
 
 export default {
-  props: ['recipient', 'amount', 'label', 'style', 'product', 'id'],
+  props: ['recipient', 'amount', 'label', 'style', 'product', 'id', 'network'],
   setup(props) {
     const wpdmcc = wpdmCryptoConnect();
     const style = ref(props.style || 'btn btn-link');
     const label = ref(props.label || 'Pay Now');
     const product = ref(props.product || 0);
+    const network = ref(props.network || 'devnet');
     const id = ref(props.id || '');
     const recipientAddress = ref(props.recipient || '');
     const amount = ref(props.amount ? parseFloat(props.amount) : 0);
@@ -24,17 +25,19 @@ export default {
       wpdmcc.data.connectButton.label = wpdmcc.isConnected() ? 'Connected' : 'Connect';
       wpdmcc.data.connectButton.style = wpdmcc.isConnected() ? 'btn-success' : 'btn-info';
       wpdmcc.data.amount = amount;
+      wpdmcc.data.network = network;
       wpdmcc.data.receiver = recipientAddress;
     });
 
     async function _requestPayment() {
-      return await wpdmcc.requestPayment(label, product);
+      return await wpdmcc.requestPayment(label, product, network);
     }
 
     return {
       style,
       label,
       product,
+      network,
       id,
       connectButton: wpdmcc.data.connectButton,
       wallets: wpdmcc.data.wallets,

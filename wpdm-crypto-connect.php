@@ -13,7 +13,6 @@ namespace WPDMPP\AddOn;
 
 use WPDM\__\__;
 
-const SOLANA_NETWORK = "https://api.devnet.solana.com"; // Use https://api.mainnet-beta.solana.com for mainnet;
 class CryptoConnect {
 	function __construct() {
 		add_shortcode( 'wpdm_crypto_connect', [ $this, 'connect' ] );
@@ -21,7 +20,9 @@ class CryptoConnect {
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueueScripts' ] );
 		add_action( 'wp_ajax_wpdmcrypto_validate_payment', [ $this, 'validatePayment' ] );
 		add_action( 'wp_ajax_nopriv_wpdmcrypto_validate_payment', [ $this, 'validatePayment' ] );
+		add_filter( 'add_wpdm_settings_tab', [ $this, 'settingsTab' ] );
 	}
+
 
 	function enqueueScripts() {
 		wp_enqueue_script(
@@ -52,6 +53,11 @@ class CryptoConnect {
 	}
 
 	function settings() {
+		if(isset($_POST['__wpdm_crypto_network'])) {
+			update_option('__wpdm_crypto_network', sanitize_text_field($_POST['__wpdm_crypto_network']));
+			update_option('__wpdm_crypto_solana_walltet', sanitize_text_field($_POST['__wpdm_crypto_solana_walltet']));
+			die('Settings Saved Successfully.');
+		}
 		WPDM()->template->display('settings.php', __DIR__.'/views/');
 	}
 
@@ -70,8 +76,28 @@ class CryptoConnect {
 
 	function requestPayment( $params = [] ) {
 		$id = "btn-" . uniqid();
+		$wallet = get_option('__wpdm_crypto_solana_walltet', '');
+		$id      = __::valueof($params, 'id', $id);
+		$product = __::valueof($params, 'product', 0);
+		$label   = __::valueof($params, 'label', 'Make Payment');
+		$amount  = __::valueof($params, 'amount');;
+		$style   = __::valueof($params, 'style', 'btn btn-primary');
+		$network = get_option('__wpdm_crypto_network', 'devnet');
 
-		return '<div  style="display:inline-block;width:auto"><div class="vue-app" data-id="' . __::valueof( $params, 'id', $id ) . '" id="' . __::valueof( $params, 'id', $id ) . '" data-product="' . __::valueof( $params, 'product', 0 ) . '"  data-vue-app="RequestPayment" data-recipient="' . $params['recipient'] . '" data-label="' . $params['label'] . '" data-amount="' . $params['amount'] . '" data-style="' . $params['style'] . '"></div></div>';
+		return "<div style='display:inline-block;width:auto'>
+			    <div
+			        class='vue-app'
+			        data-id='{$id}'
+			        id='{$id}'
+			        data-product='{$product}'
+			        data-vue-app='RequestPayment'
+			        data-recipient='{$wallet}'
+			        data-label='{$label}'
+			        data-amount='{$amount}'
+			        data-style='{$style}'
+			        data-network='{$network}'
+			    ></div></div>";
+		//return '<div  style="display:inline-block;width:auto"><div class="vue-app" data-id="' . __::valueof( $params, 'id', $id ) . '" id="' . __::valueof( $params, 'id', $id ) . '" data-product="' . __::valueof( $params, 'product', 0 ) . '"  data-vue-app="RequestPayment" data-recipient="' . $wallet . '" data-label="' . $params['label'] . '" data-amount="' . $params['amount'] . '" data-style="' . $params['style'] . '" data-network="'.get_option('__wpdm_crypto_network', 'devnet').'"></div></div>';
 	}
 
 	function validatePayment() {
@@ -83,8 +109,7 @@ class CryptoConnect {
 		$signature = sanitize_text_field($_POST['signature']);
 		$expectedReceiver = get_option('__wpdm_crypto_connect_mywallet_address', 'dLn6LRrRjSF97vsjNkvBt9j3otMGoKKLoUPx4TvMD5h');
 		$expectedAmount = 10000000; // Amount in Lamports (e.g., 0.01 SOL = 10,000,000 Lamports)
-		//$rpcUrl = "https://api.devnet.solana.com"; // Use https://api.mainnet-beta.solana.com for mainnet
-
+		$rpcUrl = get_option('__wpdm_crypto_network') === 'devnet' ? "https://api.devnet.solana.com" : "https://api.mainnet-beta.solana.com";
 		$postData = [
 			"jsonrpc" => "2.0",
 			"id" => 1,
@@ -92,7 +117,7 @@ class CryptoConnect {
 			"params" => [$signature, "jsonParsed"]
 		];
 
-		$ch = curl_init(SOLANA_NETWORK);
+		$ch = curl_init($rpcUrl);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_POST, true);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, [
@@ -139,7 +164,7 @@ class CryptoConnect {
 		} elseif ($foundReceiver) {
 			wp_send_json(['success' => 0, 'message' => 'Transaction is valid, but the paid amount is insufficient.']);
 		} else {
-			wp_send_json(['success' => 0, 'message' => 'Transaction is valid, but receiver address does not match.'. $receiverAddress ." ".$expectedReceiver]);
+			wp_send_json(['success' => 0, 'message' => 'Transaction is valid, but receiver address does not match.']);
 		}
 	}
 

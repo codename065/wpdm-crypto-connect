@@ -20,6 +20,7 @@ document.querySelectorAll('.vue-app').forEach(el => {
         style: el.getAttribute('data-style'),
         label: el.getAttribute('data-label'),
         product: el.getAttribute('data-product'),
+        network: el.getAttribute('data-network'),
         id: el.getAttribute('data-id'),
     };
     if (components[appName]) {
