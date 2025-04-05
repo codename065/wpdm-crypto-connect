@@ -46,6 +46,15 @@ class CryptoConnect {
 		);*/
 	}
 
+	function settingsTab( $tabs ) {
+		$tabs['wpdm-crypto'] = wpdm_create_settings_tab( 'wpdm-crypto', 'Crypto Connect', [$this, 'settings'], 'fas fa-wallet' );
+		return $tabs;
+	}
+
+	function settings() {
+		WPDM()->template->display('settings.php', __DIR__.'/views/');
+	}
+
 	/**
 	 * @return false|string
 	 */
