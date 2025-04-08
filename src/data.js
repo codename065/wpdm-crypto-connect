@@ -14,8 +14,9 @@ export const wpdmCryptoConnect = defineStore('common', () => {
             wallets: [
                 { name: 'Phantom', provider: false, id: 'phantom', connected: false, label: 'Connect', style: 'btn-info' },
                 { name: 'Solflare', provider: false, id: 'solflare', connected: false, label: 'Connect', style: 'btn-info' },
-                { name: 'Torus', provider: false, id: 'torus', connected: false, label: 'Connect', style: 'btn-info' },
-                { name: 'Glow', provider: false, id: 'glow', connected: false, label: 'Connect', style: 'btn-info' }
+                { name: 'Enkrypt', provider: false, id: 'enkrypt', connected: false, label: 'Connect', style: 'btn-info' },
+                { name: 'Glow', provider: false, id: 'glow', connected: false, label: 'Connect', style: 'btn-info' },
+                { name: 'Trust', provider: false, id: 'trust', connected: false, label: 'Connect', style: 'btn-info' }
             ],
             connectButton: { label: 'Connect', style: 'btn-info', connected: false, address: '' }
         }
@@ -57,7 +58,8 @@ export const wpdmCryptoConnect = defineStore('common', () => {
         switch (id) {
             case 'phantom': return window.phantom?.solana || false;
             case 'solflare': return window.solflare || false;
-            case 'torus': return window.torus || false;
+            case 'enkrypt': return window.enkrypt?.providers.solana || false;
+            case 'trust': return window.trustwallet?.solana || false;
             case 'glow': return window.glowSolana || false;
             default: return false;
         }
@@ -75,8 +77,17 @@ export const wpdmCryptoConnect = defineStore('common', () => {
                 return;
             }
 
+            if(wallet.id === 'enkrypt') {
+                await connectEnkryptWallet();
+                return;
+            }
+
             // Connect to the wallet
-            const response = await provider.connect();
+            if(wallet.id === 'trust')
+                await window.trustwallet.solana.connect();
+             else
+                await provider.connect();
+
             console.log('Wallet Connected:', provider);
             const publicKey = provider.publicKey?.toString();
             connectionStatus(wallet.id, true);
@@ -92,6 +103,36 @@ export const wpdmCryptoConnect = defineStore('common', () => {
             console.error('Connection Error:', error.message);
         }
     }
+
+    async function connectEnkryptWallet() {
+        if (window.enkrypt) {
+            try {
+                const provider = window.enkrypt.providers.solana;
+                if (!provider) {
+                    console.error('Solana provider not found in Enkrypt.');
+                    return;
+                }
+                // Request connection to the wallet
+                const accounts = await provider.connect();
+
+                const publicKey = accounts[0].address;
+                connectionStatus('enkrypt', true);
+                localStorage.setItem('wallet_id', 'enkrypt');
+                localStorage.setItem('wallet', publicKey);
+                data.value.connectButton.connected = true;
+                data.value.connectButton.label = 'Connected';
+                data.value.connectButton.style = 'btn-success';
+                data.value.connectButton.address = publicKey;
+
+                // Proceed with your application logic using the connected account
+            } catch (err) {
+                console.error('Failed to connect to Enkrypt wallet:', err);
+            }
+        } else {
+            console.error('Enkrypt wallet not detected. Please install it from https://www.enkrypt.com/.');
+        }
+    }
+
     async function disconnectWallet() {
         const wallet = getWallet(localStorage.getItem('wallet_id'));
         await wallet.provider.disconnect();
@@ -131,7 +172,7 @@ export const wpdmCryptoConnect = defineStore('common', () => {
                 solanaWeb3.SystemProgram.transfer({
                     fromPubkey: payer,
                     toPubkey: new solanaWeb3.PublicKey(data.value.receiver), // Replace with your wallet address
-                    lamports: parseFloat(data.value.amount) * 1e9 // 0.01 SOL in lamports
+                    lamports: parseFloat(data.value.amount) * solanaWeb3.LAMPORTS_PER_SOL // 0.01 SOL in lamports
                 })
             );
 
@@ -140,7 +181,14 @@ export const wpdmCryptoConnect = defineStore('common', () => {
             transaction.recentBlockhash = blockhash;
 
             // Request the wallet to sign and send the transaction
-            const signedTransaction = await provider.signTransaction(transaction);
+            let signedTransaction;
+            if(walletid === 'trust')
+                signedTransaction = await window.trustwallet.solana.signTransaction(transaction);
+            else
+                signedTransaction = await provider.signTransaction(transaction);
+
+            console.log(signedTransaction);
+
             data.value.signature = await connection.sendRawTransaction(signedTransaction.serialize());
             label.value = 'Confirming...';
 
@@ -176,7 +224,7 @@ export const wpdmCryptoConnect = defineStore('common', () => {
             if(parseInt(res.success) === 1) {
                 label.value = 'Completed';
                 data.value.signature = '';
-                WPDM.bootAlert("Payment successful!",res.message, 400, true);
+                WPDM.bootAlert("Payment successful!", res.message + '<hr/><div style="text-align: center"></div><a class="btn btn-success" href="' + res.download_link + '">Download</a></div>', 400, true);
             }
             else
                 setTimeout(() => checkStatus(product, label), 1000)

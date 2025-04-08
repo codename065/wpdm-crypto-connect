@@ -2,12 +2,14 @@ import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import Connect from './components/Connect.vue';
 import RequestPayment from './components/RequestPayment.vue';
+import Paid from './components/Paid.vue';
 
 const pinia = createPinia();
 
 const components = {
     Connect,
-    RequestPayment
+    RequestPayment,
+    Paid,
 };
 
 document.querySelectorAll('.vue-app').forEach(el => {
