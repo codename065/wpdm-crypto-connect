@@ -1,9 +1,9 @@
 <template>
   <div class="w3eden">
-    <button :class="'btn ' + connectButton.style" data-toggle="modal" data-target="#selectwallet">{{ connectButton.label }}</button>
+    <button :class="'btn ' + connectButton.style" data-toggle="modal" data-target="#selectwallet"><img :src="walletLogo()" style="width: 22px;height: auto;border-radius: 4px;margin-right: 6px" />{{ connectButton.label }}</button>
     <div class="modal fade" tabindex="-1" id="selectwallet" data-backdrop="static">
       <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width: 100%;width: 300px">
-        <div class="modal-content">
+        <div class="modal-content" role="document">
           <div class="modal-header">
             <h5 class="modal-title">{{ connectButton.connected ? 'Wallet Connected' : 'Connect Wallet' }}</h5>
             <button type="button" data-dismiss="modal" aria-label="Close" style="background: transparent;border: none;">
@@ -14,7 +14,7 @@
             <div id="walletList" class="list-group-flush">
               <div v-if="connectButton.connected" class="list-group-item" style="font-weight: bold;color: #3d9331;text-align: center; background: #f1f1f1">{{ formatString(connectButton.address) }} <i class="fa fa-files ttip" title="Copy Address"></i></div>
               <template  v-for="wallet in wallets" :key="wallet.id">
-                <div class="list-group-item"> {{ wallet.name }}
+                <div class="list-group-item"> <img :src="walletLogo(wallet.id)" style="width: 22px;height: auto;border-radius: 4px;margin-right: 6px" /> {{ wallet.name }}
                   <button v-on:click="connectWallet(wallet.id)" v-if="wallet.provider" :data-wallet="wallet.id" :class="'btn btn-sm wltcnnct float-right ' + wallet.style">{{ wallet.label }}</button>
                   <button v-else :data-wallet="wallet.id" style="opacity: 0.5" class="btn btn-sm btn-secondary wltcnnct float-right">Not Installed</button>
                 </div>
@@ -42,6 +42,11 @@ export default {
       wpdmcc.data.connectButton.style = wpdmcc.isConnected() ? 'btn-success' : 'btn-info';
     });
 
+    function walletLogo(walletId) {
+      if(!walletId) walletId = localStorage.getItem('wallet_id') || 'connect';
+      return wpdm_url.home + 'wp-content/plugins/wpdm-crypto-connect/public/images/' + walletId + '.svg';
+    }
+
     return {
       connectButton: wpdmcc.data.connectButton,
       wallets: wpdmcc.data.wallets,
@@ -53,6 +58,7 @@ export default {
       detectWallets: wpdmcc.detectWallets,
       getProvider: wpdmcc.getProvider,
       disconnectWallet: wpdmcc.disconnectWallet,
+      walletLogo
     };
   }
 };
