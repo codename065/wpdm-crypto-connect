@@ -24,12 +24,15 @@ $crypto_btn_style = get_post_meta(get_the_ID(), '__wpdm_crypto_btn_style', true)
 		?>
     </div>
 </div>
+
+<?php require(__DIR__."/rewards.php") ?>
+
 <div class="card">
 	<div class="card-header">
-		<?php _e('My Purchases', 'wpdm-crypto-connect'); ?>
+		<?php _e('Purchases', 'wpdm-crypto-connect'); ?>
 	</div>
 	<div class="card-body-np">
-        <table class="table table-striped">
+        <table class="table table-striped m-0">
             <thead>
             <tr>
                 <th><?php _e('Product', 'wpdm-crypto-connect'); ?></th>
@@ -44,7 +47,8 @@ $crypto_btn_style = get_post_meta(get_the_ID(), '__wpdm_crypto_btn_style', true)
             <tbody>
 	        <?php
 	        global $wpdb;
-	        $payments = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}ahm_crypto_payments WHERE user_id = '".get_current_user_id()."'");
+	        $payments = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}ahm_crypto_payments WHERE user_id = '".get_current_user_id()."' order by ID desc");
+            if($payments && count($payments) > 0) {
             foreach($payments as $payment){ ?>
                 <tr>
                     <td><?php echo get_the_title($payment->product_id); ?></td>
@@ -55,7 +59,13 @@ $crypto_btn_style = get_post_meta(get_the_ID(), '__wpdm_crypto_btn_style', true)
                     <td><?php echo $payment->metadata ? wp_date(get_option('date_format'), json_decode($payment->metadata)->expiry_date) : '-'; ?></td>
                     <td><a href="<?php echo add_query_arg( [ 'crytodl' => Crypt::encrypt( $payment->ID ) ], home_url( '/' ) ); ?>" class="btn btn-primary btn-sm"><?php _e('Download', 'download-manager'); ?></a></td>
                 </tr>
-	        <?php } ?>
+	        <?php } } else {
+                ?>
+                <tr>
+                    <td colspan="7" class="text-center text-info"><?php _e('You did not purchase any with crypto yet.', 'wpdm-crypto-connect'); ?></td>
+                </tr>
+                <?php
+            } ?>
         </table>
     </div>
 </div>
