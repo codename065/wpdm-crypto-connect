@@ -37,9 +37,9 @@ $liquidity = (new NetCred())->getLiquidity();
 </style>
 <div class="card" id="ntcr-rewards">
 	<div class="card-header">
-        <a href="" class="float-right text-primary"><i class="fa-regular fa-file-lines"></i> NTCR Whitepaper</a>
-        <a href="" class="float-right text-success" style="margin-right: 15px"><i class="fa fa-road"></i> Roadmap</a>
-        <a href="" class="float-right text-info" style="margin-right: 15px"><i class="fa fa-home"></i> NTRC Home</a>
+        <a href="https://netcred.io/whitepaper" class="float-right text-primary"><i class="fa-regular fa-file-lines"></i> NTCR Whitepaper</a>
+        <a href="https://netcred.io/roadmap" class="float-right text-success" style="margin-right: 15px"><i class="fa fa-road"></i> Roadmap</a>
+        <a href="https://netcred.io" class="float-right text-info" style="margin-right: 15px"><i class="fa fa-home"></i> NTCR Home</a>
 		<?php _e('NetCred (NTCR) Status', 'wpdm-crypto-connect'); ?>
 	</div>
 	<div class="card-body">
@@ -50,14 +50,14 @@ $liquidity = (new NetCred())->getLiquidity();
                             Your Reward Balance
                         </div>
                         <div class="card-body lead">
-                            <h2 class=" text-success"><?php echo number_format((new NetCred())->getBalance(get_current_user_id()),0) ?> NTCR</h2>
+                            <h2 class="text-success"><span id="ntcrbalance"><?php echo number_format((new NetCred())->getBalance(get_current_user_id()),0) ?></span> NTCR  <a href="#" id="recalntcr" class="float-right ttip text-muted" data-tooltip="ReCalculate">⟳</a></h2>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="card">
                         <div class="card-body lead">
-                            <h3 class="">10,000,000,000 NTCR</h3>
+                            <h3>10,000,000,000 NTCR</h3>
                         </div>
                         <div class="card-footer">
                             Max Supply
@@ -77,7 +77,7 @@ $liquidity = (new NetCred())->getLiquidity();
                  <div class="col-md-4">
                     <div class="card">
                         <div class="card-body lead">
-                            <h3 class=" text-primary">6,508,000 NTCR</h3>
+                            <h3 class=" text-primary"><?php echo number_format((new NetCred())->distributed(), 0) ?> NTCR</h3>
                         </div>
                         <div class="card-footer">
                             Reward Distributed
@@ -87,7 +87,7 @@ $liquidity = (new NetCred())->getLiquidity();
                 <div class="col-md-4">
                     <div class="card">
                         <div class="card-body lead">
-                            <h3 class=" text-primary">19,458</h3>
+                            <h3 class=" text-primary"><?php echo number_format((new NetCred())->tokenHolders(), 0); ?></h3>
                         </div>
                         <div class="card-footer">
                             Holders
@@ -147,10 +147,23 @@ $liquidity = (new NetCred())->getLiquidity();
         }).on('mousemove', function (e) {
             $tooltip.css({
                 top: e.pageY + 30,
-                left: e.pageX - 120
+                left: e.pageX - 20
             });
         }).on('mouseleave', function () {
             $tooltip.fadeOut(150);
         });
+
+        $('#recalntcr').on('click', function (e) {
+            e.preventDefault();
+            WPDM.blockUI('#ntcrbalance');
+            $.get(wpdm_url.ajax, {
+                action: 'ntcr_recalculate',
+                ntcrnonce: '<?php echo wp_create_nonce(WPDM_PUB_NONCE) ?>'
+            }, function (res) {
+                $('#ntcrbalance').html(res.balance);
+                WPDM.unblockUI('#ntcrbalance');
+            });
+        })
+
     });
 </script>

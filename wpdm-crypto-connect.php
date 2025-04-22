@@ -13,6 +13,7 @@ namespace WPDMPP\AddOn;
 
 require_once __DIR__ . '/libs/NetCred.php';
 
+use NetCred;
 use WPDM\__\__;
 use WPDM\__\Crypt;
 use WPDM\__\HTML\Element;
@@ -30,6 +31,7 @@ class CryptoConnect {
 		add_shortcode( 'wpdm_request_payment', [ $this, 'requestPayment' ] );
 
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueueScripts' ] );
+		add_action( 'wp_ajax_ntcr_recalculate', [ $this, 'reCalculateBalance' ] );
 		add_action( 'wp_ajax_wpdmcrypto_validate_payment', [ $this, 'validatePayment' ] );
 		add_action( 'wp_ajax_nopriv_wpdmcrypto_validate_payment', [ $this, 'validatePayment' ] );
 		add_action( 'wp_ajax_wpdm_crypto_paid', [ $this, 'isPaid' ] );
@@ -39,6 +41,7 @@ class CryptoConnect {
 		add_filter( 'wpdm_user_dashboard_menu', [ $this, 'dashboardMenu' ] );
 		add_action('init', [$this, 'download']);
 		add_action('wpdmpp_order_completed', [$this, 'rewardCustomer']);
+		add_action('wpdmpp_order_renewed', [$this, 'rewardCustomer']);
 
 		add_filter( 'update_plugins_wpdm-crypto-connect', [ $this, "updatePlugin" ], 10, 4 );
 
@@ -365,6 +368,13 @@ class CryptoConnect {
 
 	function rewardCustomer($orderId) {
 		(new \NetCred())->rewardForOrder($orderId);
+	}
+
+	function reCalculateBalance() {
+		__::isAuthentic('ntcrnonce', WPDM_PUB_NONCE, 'read');
+		$NetCred = new NetCred();
+		$NetCred->recalculate(get_current_user_id());
+		wp_send_json(['success' => true, 'balance' => number_format($NetCred->getBalance(get_current_user_id()), 0), 'message' => 'Balance recalculated successfully.']);
 	}
 
 }
