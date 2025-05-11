@@ -172,7 +172,7 @@ class NetCred {
 		if(!$fetch && $stats) return $stats;
 		$connection = self::isConnected();
 		if(!$connection) return false;
-		$stats = $this->request('token/stats', [], $connection->user->token, 'GET');
+		$stats = $this->request('token/stats', [], $connection->user->app_token, 'GET');
 		if($stats && $stats->success === true)
 			TempStorage::set("__ntcr_stats_".$user_id, $stats, 3600);
 		return $stats;
