@@ -2,6 +2,8 @@
 if(!defined('ABSPATH')) die('Dream more!');
 
 $liquidity = (new NetCred())->getLiquidity();
+
+$connected = NetCred::isConnected();
 ?>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,110 +39,86 @@ $liquidity = (new NetCred())->getLiquidity();
 </style>
 <div class="card" id="ntcr-rewards">
 	<div class="card-header">
-        <a href="https://netcred.io/whitepaper" class="float-right text-primary"><i class="fa-regular fa-file-lines"></i> NTCR Whitepaper</a>
-        <a href="https://netcred.io/roadmap" class="float-right text-success" style="margin-right: 15px"><i class="fa fa-road"></i> Roadmap</a>
-        <a href="https://netcred.io" class="float-right text-info" style="margin-right: 15px"><i class="fa fa-home"></i> NTCR Home</a>
+        <?php if($connected) { ?>
+            <button type="button" id="connectntcr" class="float-right btn btn-xs btn-success" style="margin-left: 15px;border-radius: 4px;padding: 4px 12px;"><i class="fa fa-check-double"></i> Connected</button>
+        <?php } else { ?>
+            <button type="button" id="connectntcr" class="float-right btn btn-xs btn-info" style="margin-left: 15px;border-radius: 4px;padding: 4px 12px;"><i class="fa fa-link"></i> Connect</button>
+        <?php } ?>
+        <a href="https://netcred.io/#docs" target="_blank" class="float-right text-primary"><i class="fa-regular fa-file-lines"></i> NTCR Whitepaper</a>
+        <a href="https://netcred.io/#roadmap" target="_blank" class="float-right text-success" style="margin-right: 15px"><i class="fa fa-road"></i> Roadmap</a>
+        <a href="https://netcred.io" target="_blank" class="float-right text-info" style="margin-right: 15px"><i class="fa fa-home"></i> NTCR Home</a>
 		<?php _e('NetCred (NTCR) Status', 'wpdm-crypto-connect'); ?>
 	</div>
 	<div class="card-body">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="card text-center">
-                        <div class="card-header">
-                            Your Reward Balance
-                        </div>
-                        <div class="card-body lead">
-                            <h2 class="text-success"><span id="ntcrbalance"><?php echo number_format((new NetCred())->getBalance(get_current_user_id()),0) ?></span> NTCR  <a href="#" id="recalntcr" class="float-right ttip text-muted" data-tooltip="ReCalculate">⟳</a></h2>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body lead">
-                            <h3>10,000,000,000 NTCR</h3>
-                        </div>
-                        <div class="card-footer">
-                            Max Supply
-                        </div>
-                    </div>
-                </div>
-                 <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body lead">
-                            <h3 class=" text-info">2,000,000,000 NTCR</h3>
-                        </div>
-                        <div class="card-footer">
-                            Reward Allocation
-                        </div>
-                    </div>
-                </div>
-                 <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body lead">
-                            <h3 class=" text-primary"><?php echo number_format((new NetCred())->distributed(), 0) ?> NTCR</h3>
-                        </div>
-                        <div class="card-footer">
-                            Reward Distributed
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body lead">
-                            <h3 class=" text-primary"><?php echo number_format((new NetCred())->tokenHolders(), 0); ?></h3>
-                        </div>
-                        <div class="card-footer">
-                            Holders
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body lead">
-                            <h3 class=" text-success"><?php echo wpdmpp_price_format($liquidity, false, true) ?> USD</h3>
-                        </div>
-                        <div class="card-footer">
-                            Liquidity  <span class="ttip" style="cursor: pointer" data-tooltip="Until the launch date, 1.5% of each sale is allocated to liquidity and updated daily!">🌱</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body lead">
-                            <h3 class=" text-success"><?php echo (new NetCred())->getRate() ?> USD</h3>
-                        </div>
-                        <div class="card-footer">
-                            Current Rate
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-12">
-                    <div class="card text-center m-0">
-                        <div class="card-header">
-                            Launch Date
-                        </div>
-                        <div class="card-body lead">
-                            <h3 class="text-success">July 01, 2025</h3>
-                        </div>
-                    </div>
-                </div>
-                <!-- div class="col-md-4">
-                    <div class="card">
-                        <div class="d-flex justify-content-between align-items-start p-3">
-                            <div>Reward Distributed</div>
-                            <span class="badge bg-success text-white rounded-pill">10,000,000</span>
-                        </div>
-                    </div>
-                </div -->
-                <div class="col-md-6">
-
-                </div>
+            <div class="row" id="ntcrstats" <?php if(!$connected) { ?>style="display:none"<?php } ?>>
+                <?php include wpdm_tpl_path("ntcr-stats.php", __DIR__); ?>
             </div>
+
+            <div class="card m-0" id="ntcrstatsnc" <?php if($connected) { ?>style="display:none"<?php } ?>><div class="card-body text-secondary text-center">Your account is not connected with NetCred yet!</div></div>
+
 	</div>
 </div>
+<style>
+    /* Modal overlay */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+    }
+    /* Modal box */
+    .modal-box {
+        width: 90%;
+        max-width: 300px;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.8);
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .modal-overlay.show .modal-box {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+
+    .modal-close {
+        position: absolute;
+        top: 10px; right: 10px;
+        background: none;
+        border: none;
+        font-size: 18px;
+        cursor: pointer;
+    }
+</style>
+<div class="modal-overlay" id="codentcrmdl">
+    <div class="modal-box">
+        <div class="card" style=" border-radius: 8px !important;border:0;box-shadow: 0 0 16px rgba(0, 0, 0, 0.4)">
+            <div class="card-body">
+                <h3 class="mb-3">Verification Code</h3>
+                <div>
+                    <input type="text" id="ntcrcnctcode" value="" class="form-control form-control-lg input-lg" style="text-align: center;font-family: monospace;font-weight: bold" placeholder="......" />
+                    <small class="text-sm">Verification code sent to you email address</small>
+                </div>
+            </div>
+            <div class="card-footer text-center"><button type="button" class="btn btn-secondary cldmdlntcr">Close</button> <button type="button" id="vrfycnctntcr" class="btn btn-primary">Connect Now</button></div>
+        </div>
+    </div>
+</div>
+
+
 <script>
     jQuery(function ($) {
         const $tooltip = $('<div class="custom-tooltip"></div>').appendTo('body').hide();
+        const $body = $('body');
+
+        const clsntcrcnctmdl = () => {
+            $('#codentcrmdl').fadeOut(150, function () {
+                $(this).removeClass('show');
+            });
+        }
 
         $('.ttip').on('mouseenter', function () {
             $tooltip.text($(this).data('tooltip')).fadeIn(150);
@@ -153,15 +131,56 @@ $liquidity = (new NetCred())->getLiquidity();
             $tooltip.fadeOut(150);
         });
 
-        $('#recalntcr').on('click', function (e) {
+        $body.on('click', '#connectntcr', function (e) {
             e.preventDefault();
-            WPDM.blockUI('#ntcrbalance');
+            WPDM.blockUI('#ntcr-rewards');
+            $.get(wpdm_url.ajax, {
+                action: 'ntcr_connect',
+                ntcrnonce: '<?php echo wp_create_nonce(WPDM_PUB_NONCE) ?>'
+            }, function (res) {
+                WPDM.unblockUI('#ntcr-rewards');
+                if(res.success) {
+                    $('#codentcrmdl').fadeIn(150, function () {
+                        $(this).addClass('show');
+                    });
+                }
+            });
+        });
+
+        $body.on('click', '.cldmdlntcr', function () {
+            clsntcrcnctmdl();
+        });
+
+        $body.on('click', '#vrfycnctntcr', function () {
+            clsntcrcnctmdl();
+            WPDM.blockUI('#ntcr-rewards');
+            $.get(wpdm_url.ajax, {
+                action: 'ntcr_connect',
+                code: $('#ntcrcnctcode').val(),
+                ntcrnonce: '<?php echo wp_create_nonce(WPDM_PUB_NONCE) ?>'
+            }, function (res) {
+                console.log(res);
+                WPDM.unblockUI('#ntcr-rewards');
+                if(res.success) {
+                    $('#connectntcr').removeClass('btn-info').addClass('btn-success').html('<i class="fa fa-check-double"></i> Connected');
+                    $('#ntcrstatsnc').hide();
+                    $('#ntcrstats').show();
+                    $('#ntcrstats').load(wpdm_url.ajax+"?action=ntcr_stats&ntcrnonce=<?php echo wp_create_nonce(WPDM_PUB_NONCE) ?>");
+                    WPDM.notify('You are connected with NTCR Platform', 'success', 'top-center', 5000);
+                }
+            }
+            )
+        });
+
+        $body.on('click', '#recalntcr', function (e) {
+            e.preventDefault();
+            WPDM.blockUI('#ntcrstats');
             $.get(wpdm_url.ajax, {
                 action: 'ntcr_recalculate',
                 ntcrnonce: '<?php echo wp_create_nonce(WPDM_PUB_NONCE) ?>'
             }, function (res) {
-                $('#ntcrbalance').html(res.balance);
-                WPDM.unblockUI('#ntcrbalance');
+                $('#ntcrstats').html(res);
+                WPDM.unblockUI('#ntcrstats');
             });
         })
 

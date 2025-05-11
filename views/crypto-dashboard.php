@@ -6,7 +6,7 @@ if(!defined('ABSPATH')) die('Dream more!');
 $amount = get_post_meta(get_the_ID(), '__wpdm_crypto_amount', true);
 $crypto_btn_label = get_post_meta(get_the_ID(), '__wpdm_crypto_btn_label', true);
 $crypto_btn_style = get_post_meta(get_the_ID(), '__wpdm_crypto_btn_style', true);
-
+$network = get_option('__wpdm_crypto_network', 'devnet');
 ?>
 <div class="card">
 	<div class="card-header">
@@ -16,7 +16,7 @@ $crypto_btn_style = get_post_meta(get_the_ID(), '__wpdm_crypto_btn_style', true)
 	        echo $CryptoConnect->connect()
 	        ?>
         </div>
-		<div style="line-height: 34px"><?php _e('Crypto Connect', 'wpdm-crypto-connect'); ?></div>
+		<div style="line-height: 34px"><?php _e('Connect with Wallet', 'wpdm-crypto-connect'); ?></div>
 	</div>
 	<div class="card-body">
 		<?php

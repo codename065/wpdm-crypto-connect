@@ -31,15 +31,22 @@ class CryptoConnect {
 		add_shortcode( 'wpdm_request_payment', [ $this, 'requestPayment' ] );
 
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueueScripts' ] );
+
 		add_action( 'wp_ajax_ntcr_recalculate', [ $this, 'reCalculateBalance' ] );
+		add_action( 'wp_ajax_ntcr_connect', [ $this, 'ntcrConnect' ] );;
+		add_action( 'wp_ajax_ntcr_stats', [ $this, 'statsView' ] );;
 		add_action( 'wp_ajax_wpdmcrypto_validate_payment', [ $this, 'validatePayment' ] );
 		add_action( 'wp_ajax_nopriv_wpdmcrypto_validate_payment', [ $this, 'validatePayment' ] );
 		add_action( 'wp_ajax_wpdm_crypto_paid', [ $this, 'isPaid' ] );
+
 		add_filter( 'add_wpdm_settings_tab', [ $this, 'settingsTab' ] );
+
 		add_filter( 'wpdm_package_settings_tabs', [ $this, 'packageSettingsTab' ] );
 		add_filter( 'wdm_before_fetch_template', [ $this, 'cryptoConnectButtons' ] );
 		add_filter( 'wpdm_user_dashboard_menu', [ $this, 'dashboardMenu' ] );
+
 		add_action('init', [$this, 'download']);
+
 		add_action('wpdmpp_order_completed', [$this, 'rewardCustomer']);
 		add_action('wpdmpp_order_renewed', [$this, 'rewardCustomer']);
 
@@ -355,7 +362,7 @@ class CryptoConnect {
 		}
 	}
 
-	function formatID(string $address, int $start = 4, int $end = 4): string {
+	static function formatID(string $address, int $start = 4, int $end = 4): string {
 		if (strlen($address) <= $start + $end) {
 			return $address;
 		}
@@ -373,8 +380,20 @@ class CryptoConnect {
 	function reCalculateBalance() {
 		__::isAuthentic('ntcrnonce', WPDM_PUB_NONCE, 'read');
 		$NetCred = new NetCred();
-		$NetCred->recalculate(get_current_user_id());
-		wp_send_json(['success' => true, 'balance' => number_format($NetCred->getBalance(get_current_user_id()), 0), 'message' => 'Balance recalculated successfully.']);
+		$NetCred->recalculate();
+		$this->statsView();
+	}
+
+	function ntcrConnect() {
+		__::isAuthentic('ntcrnonce', WPDM_PUB_NONCE, 'read');
+		$NetCred = new NetCred();
+		$NetCred->connectPlatform();
+	}
+
+	function statsView() {
+		__::isAuthentic('ntcrnonce', WPDM_PUB_NONCE, 'read');
+		include wpdm_tpl_path("ntcr-stats.php", __DIR__.'/views');
+		die();
 	}
 
 }
