@@ -38,7 +38,7 @@ function format_id(string $address, int $start = 4, int $end = 4): string {
 
     </div>
 </div>
-
+<?php include wpdm_admin_tpl_path("admin-connect.php", __DIR__); ?>
 <div class="panel panel-default">
     <div class="panel-heading">
         <?php _e('Received Payments', 'wpdm-crypto-connect'); ?>

@@ -154,6 +154,8 @@ class NetCred {
 
 		if($response->user) {
 			update_user_meta( $user->ID, '__ntcr_connected', json_encode( $response ) );
+			if(is_admin() && current_user_can('manage_options'))
+				update_option('__ntcr_admin_auth_token', $response->user->app_token);
 			//$stats = $this->getStats();
 			//wp_send_json( ['connection' => $response, 'stats' => $stats] );
 		}
@@ -171,7 +173,7 @@ class NetCred {
 		$stats = TempStorage::get("__ntcr_stats_".$user_id);
 		if(!$fetch && $stats) return $stats;
 		$connection = self::isConnected();
-		if(!$connection) return false;
+		if(!$connection || !@$connection->user->app_token) return false;
 		$stats = $this->request('token/stats', [], $connection->user->app_token, 'GET');
 		if($stats && $stats->success === true)
 			TempStorage::set("__ntcr_stats_".$user_id, $stats, 3600);
