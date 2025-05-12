@@ -43,9 +43,9 @@ $connected = NetCred::isConnected();
 <div class="panel panel-default" id="ntcr-rewards">
 	<div class="panel-heading">
         <?php if($connected) { ?>
-            <button type="button" id="connectntcr" class="float-right btn btn-xs btn-success" style="margin-left: 15px;border-radius: 4px;padding: 4px 12px;"><i class="fa fa-check-double"></i> Connected</button>
+            <button type="button" id="connectntcr" class="float-right btn btn-xs btn-success" style="margin-left: 15px;border-radius: 4px;padding: 8px 12px;margin-top: -3px !important;"><i class="fa fa-check-double"></i> Connected</button>
         <?php } else { ?>
-            <button type="button" id="connectntcr" class="float-right btn btn-xs btn-info" style="margin-left: 15px;border-radius: 4px;padding: 4px 12px;"><i class="fa fa-link"></i> Connect</button>
+            <button type="button" id="connectntcr" class="float-right btn btn-xs btn-info" style="margin-left: 15px;border-radius: 4px;padding: 8px 12px;margin-top: -3px !important;"><i class="fa fa-link"></i> Connect</button>
         <?php } ?>
         <a href="https://netcred.io/#docs" target="_blank" class="float-right text-primary"><i class="fa-regular fa-file-lines"></i> NTCR Whitepaper</a>
         <a href="https://netcred.io/#roadmap" target="_blank" class="float-right text-success" style="margin-right: 15px"><i class="fa fa-road"></i> Roadmap</a>
@@ -159,6 +159,7 @@ $connected = NetCred::isConnected();
             WPDM.blockUI('#ntcr-rewards');
             $.get(ajaxurl, {
                 action: 'ntcr_connect',
+                admin: 1,
                 code: $('#ntcrcnctcode').val(),
                 ntcrnonce: '<?php echo wp_create_nonce(WPDM_PUB_NONCE) ?>'
             }, function (res) {
@@ -168,7 +169,7 @@ $connected = NetCred::isConnected();
                     $('#connectntcr').removeClass('btn-info').addClass('btn-success').html('<i class="fa fa-check-double"></i> Connected');
                     $('#ntcrstatsnc').hide();
                     $('#ntcrstats').show();
-                    $('#ntcrstats').load(ajaxurl+"?action=ntcr_stats&ntcrnonce=<?php echo wp_create_nonce(WPDM_PUB_NONCE) ?>");
+                    $('#ntcrstats').load(ajaxurl+"?action=ntcr_stats&admin=1&ntcrnonce=<?php echo wp_create_nonce(WPDM_PUB_NONCE) ?>");
                     WPDM.notify('You are connected with NTCR Platform', 'success', 'top-center', 5000);
                 }
             }
@@ -180,6 +181,7 @@ $connected = NetCred::isConnected();
             WPDM.blockUI('#ntcrstats');
             $.get(ajaxurl, {
                 action: 'ntcr_recalculate',
+                admin: 1,
                 ntcrnonce: '<?php echo wp_create_nonce(WPDM_PUB_NONCE) ?>'
             }, function (res) {
                 $('#ntcrstats').html(res);

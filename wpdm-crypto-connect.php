@@ -385,14 +385,19 @@ class CryptoConnect {
 	}
 
 	function ntcrConnect() {
-		__::isAuthentic('ntcrnonce', WPDM_PUB_NONCE, 'read');
+		$access_lavel = (wpdm_query_var('admin', 'int') === 1) ? 'manage_options' : 'read';
+		__::isAuthentic('ntcrnonce', WPDM_PUB_NONCE, $access_lavel);
 		$NetCred = new NetCred();
 		$NetCred->connectPlatform();
 	}
 
 	function statsView() {
+		$access_lavel = (wpdm_query_var('admin', 'int') === 1) ? 'manage_options' : 'read';
 		__::isAuthentic('ntcrnonce', WPDM_PUB_NONCE, 'read');
-		include wpdm_tpl_path("ntcr-stats.php", __DIR__.'/views');
+		if(wpdm_query_var('admin', 'int'))
+			include wpdm_tpl_path("admin-ntcr-stats.php", __DIR__.'/views');
+		else
+			include wpdm_tpl_path("ntcr-stats.php", __DIR__.'/views');
 		die();
 	}
 

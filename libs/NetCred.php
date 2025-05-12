@@ -61,9 +61,9 @@ class NetCred {
 				'date' => time()
 			)
 		);
-		if(!$wpdb->insert_id) {
+		/*if(!$wpdb->insert_id) {
 			wpdmdd($wpdb->last_error, $wpdb->last_query);
-		}
+		}*/
 		$this->request("token/transaction", ['amount' => $amount, 'receiver' => get_user($user)->user_email, 'type' => 'reward', 'description' => 'Reward for order #'.$orderId, 'order_id' => $orderId], $admin_auth_token);
 		$ntcrAwarded = (double)get_user_meta($user, '__ntcr_awarded', true);
 		$ntcrAwarded += $amount;
