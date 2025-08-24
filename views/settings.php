@@ -11,6 +11,9 @@ function format_id(string $address, int $start = 4, int $end = 4): string {
 	return $startStr . '...' . $endStr;
 }
 
+$rewards = get_option('__wpdm_ntcr_rewards');
+$rewards_type = get_option('__wpdm_ntcr_rewards_type');
+
 ?>
 <div class="panel panel-default">
 	<div class="panel-heading">
@@ -35,6 +38,62 @@ function format_id(string $address, int $start = 4, int $end = 4): string {
             <input type="hidden" name="__wpdm_crypto_ondashboard" value="0">
             <label><input type="checkbox" name="__wpdm_crypto_ondashboard" value="1" <?php checked(1, (int)get_option('__wpdm_crypto_ondashboard', 0)); ?> /> <?php _e('Show wallet connect on user dashboard', 'wpdm-crypto-connect'); ?></label>
         </div>
+
+        <div class="form-group">
+            <label><?php _e('Moralis API Key', 'wpdm-crypto-connect'); ?></label>
+            <a href="https://admin.moralis.com/" target="_blank" class="pull-right">Get The Key</a>
+            <input type="text" name="__wpdm_moralis_key" class="form-control" value="<?php echo get_option('__wpdm_moralis_key', ''); ?>" />
+        </div>
+
+    </div>
+</div>
+<div class="panel panel-default">
+    <div class="panel-heading">
+		<?php _e('NTCR Rewards', 'wpdm-crypto-connect'); ?>
+    </div>
+    <div class="panel-body-np">
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th><?php _e('User Action', 'wpdm-crypto-connect'); ?></th>
+                <th style="width: 200px"><?php _e('Reward', 'wpdm-crypto-connect'); ?></th>
+                <th style="max-width: 120px;width: 120px"><?php _e('Ratio', 'wpdm-crypto-connect'); ?></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td><?php _e('Signup', 'wpdm-crypto-connect'); ?></td>
+                <td><input type="text" name="__wpdm_ntcr_rewards[signup]" value="<?php echo (double)wpdm_valueof($rewards, 'signup') ?>" class="form-control" /></td>
+                <td>
+                    <select class="wpdm-custom-select" name="__wpdm_ntcr_rewards_type[signup]" style="max-width: 100px;width: 100px">
+                        <option value="fixed" <?php selected(wpdm_valueof($rewards_type, 'signup'), 'fixed') ?> >Fixed</option>
+                        <option value="percent" <?php selected(wpdm_valueof($rewards_type, 'signup'), 'percent') ?>>Percent</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>New Purchase</td>
+                <td><input type="text" name="__wpdm_ntcr_rewards[purchase]" value="<?php echo (double)wpdm_valueof($rewards, 'purchase') ?>" class="form-control" /></td>
+                <td>
+                    <select class="wpdm-custom-select" name="__wpdm_ntcr_rewards_type[purchase]" style="max-width: 100px;width: 100px">
+                        <option value="fixed" <?php selected(wpdm_valueof($rewards_type, 'purchase'), 'fixed') ?> >Fixed</option>
+                        <option value="percent" <?php selected(wpdm_valueof($rewards_type, 'purchase'), 'percent') ?>>Percent</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>Order Renewal</td>
+                <td><input type="text" name="__wpdm_ntcr_rewards[renewal]" value="<?php echo (double)wpdm_valueof($rewards, 'renewal') ?>" class="form-control" /></td>
+                <td>
+                    <select class="wpdm-custom-select" name="__wpdm_ntcr_rewards_type[renewal]" style="max-width: 100px;width: 100px">
+                        <option value="fixed" <?php selected(wpdm_valueof($rewards_type, 'renewal'), 'fixed') ?> >Fixed</option>
+                        <option value="percent" <?php selected(wpdm_valueof($rewards_type, 'renewal'), 'percent') ?>>Percent</option>
+                    </select>
+                </td>
+            </tr>
+            </tbody>
+        </table>
 
     </div>
 </div>

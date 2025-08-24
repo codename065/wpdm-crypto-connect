@@ -16,6 +16,7 @@ require_once __DIR__ . '/libs/NetCred.php';
 use NetCred;
 use WPDM\__\__;
 use WPDM\__\Crypt;
+use WPDM\__\Email;
 use WPDM\__\HTML\Element;
 
 global $CryptoConnect;
@@ -31,6 +32,7 @@ class CryptoConnect {
 		add_shortcode( 'wpdm_request_payment', [ $this, 'requestPayment' ] );
 
 		add_action( 'wp_enqueue_scripts', [ $this, 'enqueueScripts' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'adminScripts' ] );
 
 		add_action( 'wp_ajax_ntcr_recalculate', [ $this, 'reCalculateBalance' ] );
 		add_action( 'wp_ajax_ntcr_connect', [ $this, 'ntcrConnect' ] );;
@@ -38,6 +40,8 @@ class CryptoConnect {
 		add_action( 'wp_ajax_wpdmcrypto_validate_payment', [ $this, 'validatePayment' ] );
 		add_action( 'wp_ajax_nopriv_wpdmcrypto_validate_payment', [ $this, 'validatePayment' ] );
 		add_action( 'wp_ajax_wpdm_crypto_paid', [ $this, 'isPaid' ] );
+
+		add_action( 'wp_ajax_wpdm_ntcr_reward', [ $this, 'validateReward' ] );
 
 		add_filter( 'add_wpdm_settings_tab', [ $this, 'settingsTab' ] );
 
@@ -47,8 +51,12 @@ class CryptoConnect {
 
 		add_action('init', [$this, 'download']);
 
+
+		add_action('user_register', [$this, 'rewardForSignup'], 10, 2);
 		add_action('wpdmpp_order_completed', [$this, 'rewardCustomer']);
-		add_action('wpdmpp_order_renewed', [$this, 'rewardCustomer']);
+		add_action('wpdmpp_order_renewed', [$this, 'rewardRecurringCustomer']);
+		add_action('wpdm_associate_invoice', [$this, '_rewardCustomer'], 10, 2);
+
 
 		add_filter( 'update_plugins_wpdm-crypto-connect', [ $this, "updatePlugin" ], 10, 4 );
 
@@ -71,6 +79,19 @@ class CryptoConnect {
 			  `created_at` int NOT NULL DEFAULT '0',			  
 			  PRIMARY KEY (`ID`)
 			) ENGINE=InnoDB";
+
+		$sql = "CREATE TABLE IF NOT EXISTS `{$wpdb->prefix}ntcr_liquidity_collection` (
+			  `ID` int NOT NULL AUTO_INCREMENT,		
+    		  `order_id` varchar(60) NOT NULL,
+			  `order_amount` double NOT NULL,
+			  `liquidity_amount` double NOT NULL,
+			  `token_amount` double NOT NULL,
+			  `token_price` double NOT NULL,
+			  `user_id` int NOT NULL,
+			  `date` int NOT NULL,			  
+			  PRIMARY KEY (`ID`)
+			) ENGINE=InnoDB";
+
 		$wpdb->query($sql);
 
 	}
@@ -119,6 +140,14 @@ class CryptoConnect {
 		);*/
 	}
 
+	function adminScripts() {
+		wp_enqueue_script(
+			'wpdm-crypto-connect-admin',
+			plugin_dir_url( __FILE__ ) . 'public/js/admin.min.js', // The bundled Vue app file
+			array( 'jquery' )
+		);
+	}
+
 	function settingsTab( $tabs ) {
 		$tabs['wpdm-crypto'] = wpdm_create_settings_tab( 'wpdm-crypto', 'Crypto Connect', [$this, 'settings'], 'fas fa-wallet' );
 		return $tabs;
@@ -129,6 +158,9 @@ class CryptoConnect {
 			update_option('__wpdm_crypto_network', wpdm_query_var('__wpdm_crypto_network', 'txt'));
 			update_option('__wpdm_crypto_solana_wallet', wpdm_query_var('__wpdm_crypto_solana_wallet', 'txt'));
 			update_option('__wpdm_crypto_ondashboard', wpdm_query_var('__wpdm_crypto_ondashboard', 'int'));
+			update_option('__wpdm_moralis_key', wpdm_query_var('__wpdm_moralis_key', 'safetxt'));
+			update_option('__wpdm_ntcr_rewards', wpdm_query_var('__wpdm_ntcr_rewards'));
+			update_option('__wpdm_ntcr_rewards_type', wpdm_query_var('__wpdm_ntcr_rewards_type'));
 			die('Settings Saved Successfully.');
 		}
 		global $wpdb;
@@ -373,8 +405,33 @@ class CryptoConnect {
 		return $startStr . '...' . $endStr;
 	}
 
+
+	function rewardForSignup($userId, $userData = '') {
+		$success = (new \NetCred())->rewardForSignup($userId);
+		if(!$success) return false;
+		$emailTemplate = file_get_contents(__DIR__ . '/views/ntcr-intro-email.html');
+		$user = get_user($userId);
+		$emailTemplate = str_replace("{{name}}", $user->display_name, $emailTemplate);
+		$headers[]     = "From: WordPress Download Manager <support@wpdownloadmanager.com>";
+		$headers[]     = "Content-type: text/html";
+		wp_mail( $user->user_email, "Introducing NTCR – Get Rewarded with Every Purchase", $emailTemplate, $headers );
+	}
+
 	function rewardCustomer($orderId) {
 		(new \NetCred())->rewardForOrder($orderId);
+	}
+
+	function rewardRecurringCustomer($orderId) {
+		(new \NetCred())->rewardForOrder($orderId, 'renew');
+	}
+
+	function _rewardCustomer($userId, $orderData) {
+		if((int)$orderData->uid === 0 && $userId > 0)
+			(new \NetCred())->rewardForOrder($orderData->order_id);
+	}
+
+	function validateReward() {
+
 	}
 
 	function reCalculateBalance() {

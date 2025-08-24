@@ -43,7 +43,7 @@ $stats = (new NetCred())->getStats();
 	</div>
 </div>
 <div class="col-md-4">
-	<div class="card">
+	<div class="card mb-0">
 		<div class="card-body lead">
 			<h3 class=" text-primary"><?php echo number_format((new NetCred())->tokenHolders(), 0); ?></h3>
 		</div>
@@ -53,17 +53,17 @@ $stats = (new NetCred())->getStats();
 	</div>
 </div>
 <div class="col-md-4">
-	<div class="card">
+	<div class="card mb-0">
 		<div class="card-body lead">
 			<h3 class=" text-success"><?php echo wpdmpp_price_format(wpdm_valueof($stats, 'liquidity', 0, 'int'), false, true) ?> USD</h3>
 		</div>
 		<div class="card-footer">
-			Liquidity  <span class="ttip" style="cursor: pointer" data-tooltip="Until the launch date, 1.5% of each sale is allocated to liquidity and updated daily!">🌱</span>
+			Liquidity
 		</div>
 	</div>
 </div>
 <div class="col-md-4">
-	<div class="card">
+	<div class="card mb-0">
 		<div class="card-body lead">
 			<h3 class=" text-success"><?php echo printf("%.9f",wpdm_valueof($stats, 'currentPrice')) ?> USD</h3>
 		</div>
@@ -72,14 +72,5 @@ $stats = (new NetCred())->getStats();
 		</div>
 	</div>
 </div>
-<div class="col-md-12">
-	<div class="card text-center m-0">
-		<div class="card-header">
-			Launch Date
-		</div>
-		<div class="card-body lead">
-			<h3 class="text-success">July 01, 2025</h3>
-		</div>
-	</div>
-</div>
+
 
